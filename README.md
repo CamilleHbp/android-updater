@@ -43,3 +43,13 @@ Use JDK 25, the Android 35 SDK, and the Gradle wrapper:
 ```
 
 Unit tests cover catalogue promotion, channel/edition/ABI selection, version comparisons, endpoint restrictions, checksums, and transfer bounds. Instrumentation tests cover prompts, snoozing, localization, retry, explicit installation, and package rejection. Run the instrumentation suite on phone and tablet emulators.
+
+For a real installer test, use the isolated `studio.camille.updater.fixture` package:
+
+```sh
+python3 scripts/installer-fixture.py prepare emulator-5554 --locale en
+# Tap Install update, grant the Android permission, return, and approve Update.
+python3 scripts/installer-fixture.py verify emulator-5554
+```
+
+Repeat on a tablet with `--locale fr`. The fixture uses two APKs signed with the same test key and verifies that the version advances while a saved preference survives. It exercises the verified-cache and installation path without publishing a synthetic release. Remove only the fixture package between repeated runs; Android correctly rejects downgrading its updated installation. The fixture runner refuses physical-device serials.

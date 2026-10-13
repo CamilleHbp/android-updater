@@ -1,0 +1,13 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'studio.camille.updater.fixture'
+    compileSdk 35
+    defaultConfig { applicationId 'studio.camille.updater.fixture'; minSdk 26; targetSdk 35 }
+    flavorDimensions += 'version'
+    productFlavors {
+        old { dimension 'version'; versionCode 1; versionName '1.0' }
+        updated { dimension 'version'; versionCode 2; versionName '2.0' }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation project(':updater') }
