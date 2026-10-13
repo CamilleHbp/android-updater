@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <application>
+        <provider android:name="studio.camille.updater.UpdateProvider"
+            android:authorities="${applicationId}.camille-updater"
+            android:exported="false" android:grantUriPermissions="true" />
+        <activity android:name="studio.camille.updater.UpdateActivity"
+            android:exported="false" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+    </application>
+</manifest>

@@ -1,0 +1,14 @@
+<resources>
+    <string name="camille_update_title">Mise à jour</string>
+    <string name="camille_update_available">La version %1$s est disponible. La télécharger et l’installer maintenant ?</string>
+    <string name="camille_update_download">Télécharger la mise à jour</string>
+    <string name="camille_update_later">Plus tard</string>
+    <string name="camille_update_downloading">Téléchargement de la mise à jour… %1$d%%</string>
+    <string name="camille_update_verifying">Vérification de la mise à jour…</string>
+    <string name="camille_update_ready">La mise à jour est prête. Android vous demandera de confirmer l’installation.</string>
+    <string name="camille_update_install">Installer la mise à jour</string>
+    <string name="camille_update_permission">Autorisez les mises à jour depuis cette application dans les paramètres Android, puis revenez ici et appuyez sur Installer la mise à jour.</string>
+    <string name="camille_update_failed">Impossible de télécharger ou de vérifier la mise à jour. Vérifiez votre connexion et réessayez. Votre application actuelle reste inchangée.</string>
+    <string name="camille_update_retry">Réessayer</string>
+    <string name="camille_update_install_failed">Android n’a pas pu ouvrir le programme d’installation. Vous pouvez réessayer.</string>
+</resources>

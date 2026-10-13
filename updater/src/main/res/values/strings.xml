@@ -1,0 +1,16 @@
+<resources>
+    <string name="camille_update_app_id" translatable="false"></string>
+    <string name="camille_update_edition" translatable="false"></string>
+    <string name="camille_update_title">App update</string>
+    <string name="camille_update_available">Version %1$s is available. Download and install it now?</string>
+    <string name="camille_update_download">Download update</string>
+    <string name="camille_update_later">Later</string>
+    <string name="camille_update_downloading">Downloading update… %1$d%%</string>
+    <string name="camille_update_verifying">Verifying update…</string>
+    <string name="camille_update_ready">Your update is ready. Android will ask you to confirm installation.</string>
+    <string name="camille_update_install">Install update</string>
+    <string name="camille_update_permission">Allow updates from this app in Android settings, then return here and tap Install update.</string>
+    <string name="camille_update_failed">The update could not be downloaded or verified. Check your connection and try again. Your current app is unchanged.</string>
+    <string name="camille_update_retry">Try again</string>
+    <string name="camille_update_install_failed">Android could not open the installer. You can try again.</string>
+</resources>
