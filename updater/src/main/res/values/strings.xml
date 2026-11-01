@@ -13,4 +13,7 @@
     <string name="camille_update_failed">The update could not be downloaded or verified. Check your connection and try again. Your current app is unchanged.</string>
     <string name="camille_update_retry">Try again</string>
     <string name="camille_update_install_failed">Android could not open the installer. You can try again.</string>
+    <string name="camille_update_checking">Checking for updates…</string>
+    <string name="camille_update_current">You are using the latest version.</string>
+    <string name="camille_update_check_failed">Could not check for updates. Check your connection and try again.</string>
 </resources>

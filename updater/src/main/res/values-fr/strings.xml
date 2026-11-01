@@ -11,4 +11,7 @@
     <string name="camille_update_failed">Impossible de télécharger ou de vérifier la mise à jour. Vérifiez votre connexion et réessayez. Votre application actuelle reste inchangée.</string>
     <string name="camille_update_retry">Réessayer</string>
     <string name="camille_update_install_failed">Android n’a pas pu ouvrir le programme d’installation. Vous pouvez réessayer.</string>
+    <string name="camille_update_checking">Recherche de mises à jour…</string>
+    <string name="camille_update_current">Vous utilisez la dernière version.</string>
+    <string name="camille_update_check_failed">Impossible de rechercher les mises à jour. Vérifiez votre connexion et réessayez.</string>
 </resources>

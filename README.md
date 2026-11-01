@@ -1,6 +1,6 @@
 # Camille Android Updater
 
-A shared Android library for apps distributed through https://download.camille.studio. Requires Android 8 or later. Runtime code has no external dependencies.
+A shared Android library for apps distributed through https://download.camille.studio. Native update checks and verified installation require Android 8 or later. Version 1.0.4 can also be integrated into apps supporting Android 5–7: manual checks open the app’s public release page on those devices, and automatic checks remain disabled. Runtime code has no external dependencies.
 
 ## Integration
 

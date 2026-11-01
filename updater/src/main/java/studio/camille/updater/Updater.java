@@ -14,18 +14,23 @@ final class Updater implements Application.ActivityLifecycleCallbacks {
     static final ExecutorService IO = Executors.newSingleThreadExecutor();
     static final Handler MAIN = new Handler(Looper.getMainLooper());
     private final Application app;
-    private final SharedPreferences preferences;
     private WeakReference<Activity> foreground = new WeakReference<>(null);
+    private static Updater instance;
     private boolean checking;
+    private boolean manualCheck;
     private Release available;
     private AlertDialog dialog;
 
     private Updater(Application app) {
         this.app = app;
-        preferences = app.getSharedPreferences("camille-updater", Context.MODE_PRIVATE);
+        app.getSharedPreferences("camille-updater", Context.MODE_PRIVATE).edit()
+            .remove("snooze").remove("nextCheck").remove("nextCheckV2").apply();
     }
     static void initialize(Application app) {
-        if (!app.getString(R.string.camille_update_app_id).isEmpty()) app.registerActivityLifecycleCallbacks(new Updater(app));
+        if (instance == null && !app.getString(R.string.camille_update_app_id).isEmpty()) {
+            instance = new Updater(app);
+            app.registerActivityLifecycleCallbacks(instance);
+        }
     }
     static long code(PackageInfo info) { return Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode; }
 
@@ -33,9 +38,19 @@ final class Updater implements Application.ActivityLifecycleCallbacks {
         Intent launcher = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
         if (launcher == null || !activity.getComponentName().equals(launcher.getComponent())) return;
         foreground = new WeakReference<>(activity);
-        if (System.currentTimeMillis() < preferences.getLong("snooze", 0)) return;
-        if (available != null) { offer(); return; }
-        if (checking || System.currentTimeMillis() < preferences.getLong("nextCheck", 0)) return;
+        // Fetch the current catalogue on every entry, including after Later or failure.
+        if (checking || dialog != null) return;
+        check();
+    }
+    static void checkNow(Activity activity) {
+        initialize(activity.getApplication());
+        if (instance == null) return;
+        instance.foreground = new WeakReference<>(activity);
+        instance.manualCheck = true;
+        android.widget.Toast.makeText(activity, R.string.camille_update_checking, android.widget.Toast.LENGTH_SHORT).show();
+        if (!instance.checking) instance.check();
+    }
+    private void check() {
         checking = true;
         IO.execute(() -> {
             Release result = null; boolean success = false;
@@ -48,35 +63,42 @@ final class Updater implements Application.ActivityLifecycleCallbacks {
                 result = Release.select(record, id, app.getString(R.string.camille_update_edition), channel,
                         Arrays.asList(Build.SUPPORTED_ABIS), code(installed));
                 success = true;
-            } catch (Exception ignored) { /* An offline check never interrupts normal app use. */ }
+            } catch (Exception error) {
+                android.util.Log.w("CamilleUpdater", "Update catalogue check failed; retrying on next foreground entry", error);
+            }
             Release found = result;
-            long delay = success ? 6 * 60 * 60 * 1000L : 15 * 60 * 1000L;
-            preferences.edit().putLong("nextCheck", System.currentTimeMillis() + delay).apply();
-            MAIN.post(() -> { checking = false; available = found; offer(); });
+            boolean succeeded = success;
+            MAIN.post(() -> {
+                checking = false;
+                available = found;
+                Activity activity = foreground.get();
+                if (manualCheck && activity != null && !activity.isFinishing() && !activity.isDestroyed() && found == null) {
+                    android.widget.Toast.makeText(activity, succeeded ? R.string.camille_update_current : R.string.camille_update_check_failed,
+                        android.widget.Toast.LENGTH_LONG).show();
+                }
+                manualCheck = false;
+                offer();
+            });
         });
     }
     private void offer() {
         Activity activity = foreground.get();
-        if (activity == null || activity.isFinishing() || activity.isDestroyed() || available == null || dialog != null
-                || System.currentTimeMillis() < preferences.getLong("snooze", 0)) return;
+        if (activity == null || activity.isFinishing() || activity.isDestroyed() || available == null || dialog != null) return;
         Release release = available;
         dialog = new AlertDialog.Builder(activity)
             .setTitle(R.string.camille_update_title)
             .setMessage(activity.getString(R.string.camille_update_available, release.version))
             .setPositiveButton(R.string.camille_update_download, (d, which) -> {
-                snooze();
                 Intent intent = new Intent(activity, UpdateActivity.class)
                     .putExtra("version", release.version).putExtra("code", release.code).putExtra("url", release.url)
                     .putExtra("sha256", release.sha256).putExtra("size", release.size)
                     .putExtra("locale", activity.getResources().getConfiguration().getLocales().toLanguageTags());
                 activity.startActivity(intent);
             })
-            .setNegativeButton(R.string.camille_update_later, (d, which) -> snooze())
-            .setOnCancelListener(d -> snooze()).create();
+            .setNegativeButton(R.string.camille_update_later, (d, which) -> {}).create();
         dialog.setOnDismissListener(d -> dialog = null);
         dialog.show();
     }
-    private void snooze() { preferences.edit().putLong("snooze", System.currentTimeMillis() + 24 * 60 * 60 * 1000L).apply(); }
     @Override public void onActivityPaused(Activity activity) {
         if (foreground.get() == activity) {
             foreground.clear();

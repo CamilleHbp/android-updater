@@ -6,8 +6,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import java.io.File;
@@ -16,8 +14,9 @@ import java.io.FileNotFoundException;
 /** Private, read-only APK provider and automatic initialization entry point. */
 public final class UpdateProvider extends ContentProvider {
     @Override public boolean onCreate() {
-        new Handler(Looper.getMainLooper()).post(() ->
-            Updater.initialize((Application) getContext().getApplicationContext()));
+        // Register before the first activity can resume in the launch transaction.
+        if (android.os.Build.VERSION.SDK_INT >= 26)
+            Updater.initialize((Application) getContext().getApplicationContext());
         return true;
     }
     private File apk(Uri uri) throws FileNotFoundException {
