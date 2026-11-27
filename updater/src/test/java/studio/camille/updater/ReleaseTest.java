@@ -37,6 +37,33 @@ public class ReleaseTest {
         assertTrue(Release.select(app, "podcini", "play", "debug", Arrays.asList("x86_64"), 125).url.endsWith("universal-debug.apk"));
         assertNull(select(app, "play", "release", 125));
     }
+    @Test public void unflavoredAppsPreferTheirOwnArchitecture() throws Exception {
+        for (String id : Arrays.asList("groceries", "vervetwodo")) {
+            for (String channel : Arrays.asList("debug", "release")) {
+                JSONObject app = app(id, "3.0", 10000, "android-" + channel + ".apk",
+                    "android-arm64-" + channel + ".apk", "android-x64-" + channel + ".apk");
+                assertTrue(Release.select(app, id, "", channel, Arrays.asList("arm64-v8a", "armeabi-v7a"), 1)
+                    .url.endsWith("android-arm64-" + channel + ".apk"));
+                assertTrue(Release.select(app, id, "", channel, Arrays.asList("x86_64", "x86"), 1)
+                    .url.endsWith("android-x64-" + channel + ".apk"));
+            }
+        }
+    }
+    @Test public void missingArchitectureFallsBackToUniversalOnly() throws Exception {
+        JSONObject app = app("groceries", "3.0", 10000, "android-arm64-release.apk", "android-release.apk");
+        assertTrue(Release.select(app, "groceries", "", "release", Arrays.asList("x86_64"), 1)
+            .url.endsWith("/android-release.apk"));
+        JSONObject armOnly = app("groceries", "3.0", 10000, "android-arm64-release.apk");
+        assertNull(Release.select(armOnly, "groceries", "", "release", Arrays.asList("x86_64"), 1));
+        assertNull(Release.select(armOnly, "groceries", "", "release", Arrays.asList("armeabi-v7a"), 1));
+    }
+    @Test public void honorsDeviceAbiOrderAndExplicitUniversalFallback() throws Exception {
+        JSONObject app = app("groceries", "3.0", 10000, "android-arm64-release.apk", "android-x64-release.apk", "android-universal-release.apk");
+        assertTrue(Release.select(app, "groceries", "", "release", Arrays.asList("x86_64", "arm64-v8a"), 1)
+            .url.endsWith("android-x64-release.apk"));
+        assertTrue(Release.select(app, "groceries", "", "release", Arrays.asList("x86"), 1)
+            .url.endsWith("android-universal-release.apk"));
+    }
     @Test public void doesNotFallBackToHistoricalOrWrongChannelRelease() throws Exception {
         assertNull(select(app("groceries", "2.0.1", 34, "android-release.apk"), "", "debug", 33));
     }

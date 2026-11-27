@@ -29,11 +29,15 @@ final class Release {
             long code = Long.parseLong(latest.substring(version.length() + 1));
             if (code <= installed) return null;
             String prefix = "android-" + (edition.isEmpty() ? "" : edition + "-");
-            List<String> names = edition.isEmpty()
-                ? java.util.Arrays.asList(prefix + channel + ".apk")
-                : abis.contains("arm64-v8a")
-                    ? java.util.Arrays.asList(prefix + "arm64-" + channel + ".apk", prefix + "universal-" + channel + ".apk")
-                    : java.util.Arrays.asList(prefix + "universal-" + channel + ".apk");
+            List<String> names = new java.util.ArrayList<>();
+            // Respect device ABI preference; never select another CPU's APK.
+            for (String abi : abis) {
+                if ("arm64-v8a".equals(abi)) names.add(prefix + "arm64-" + channel + ".apk");
+                else if ("x86_64".equals(abi)) names.add(prefix + "x64-" + channel + ".apk");
+            }
+            names.add(prefix + "universal-" + channel + ".apk");
+            // Original unqualified URLs remain universal for older installations.
+            if (edition.isEmpty()) names.add(prefix + channel + ".apk");
             JSONArray assets = release.getJSONArray("assets");
             for (String name : names) for (int k = 0; k < assets.length(); k++) {
                 JSONObject asset = assets.getJSONObject(k);

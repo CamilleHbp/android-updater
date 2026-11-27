@@ -9,7 +9,7 @@ import android.provider.Settings;
 import android.view.*;
 import android.widget.*;
 
-/** Accessible native download screen. Installation always requires an explicit tap. */
+/** Accessible native download screen. Accepted updates proceed directly to Android’s installation confirmation. */
 public final class UpdateActivity extends Activity {
     private Context localized;
     private Download job;
@@ -17,9 +17,14 @@ public final class UpdateActivity extends Activity {
     private ProgressBar progress;
     private Button action;
     private boolean permissionRequested;
+    private boolean installationAttempted;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (state != null) {
+            permissionRequested = state.getBoolean("permissionRequested");
+            installationAttempted = state.getBoolean("installationAttempted");
+        }
         localized = this;
         String locale = getIntent().getStringExtra("locale");
         if (locale != null && !locale.isEmpty()) {
@@ -56,6 +61,19 @@ public final class UpdateActivity extends Activity {
     }
     @Override public void onResume() { super.onResume(); if (job != null) { job.observe(this); render(); } }
     @Override public void onPause() { if (job != null) job.detach(this); super.onPause(); }
+    @Override public void onSaveInstanceState(Bundle state) {
+        state.putBoolean("permissionRequested", permissionRequested);
+        state.putBoolean("installationAttempted", installationAttempted);
+        super.onSaveInstanceState(state);
+    }
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 82 && getPackageManager().canRequestPackageInstalls()) {
+            // A recreated process may still be revalidating the cached APK.
+            installationAttempted = false;
+        }
+        // onResume observes the transfer and continues only after verification.
+    }
     void render() {
         if (isFinishing() || isDestroyed() || job == null) return;
         boolean ready = "ready".equals(job.state), failed = "failed".equals(job.state);
@@ -69,13 +87,17 @@ public final class UpdateActivity extends Activity {
         else if (failed) status.setText(R.string.camille_update_failed);
         else if ("verifying".equals(job.state)) status.setText(R.string.camille_update_verifying);
         else status.setText(localized.getString(R.string.camille_update_downloading, job.percent));
+        if (ready && !installationAttempted) install();
     }
     private void install() {
+        // Set before launching external UI: cancellation, rotation, and resume must
+        // not reopen the installer or permission settings without another request.
+        installationAttempted = true;
         try {
             if (!getPackageManager().canRequestPackageInstalls()) {
                 permissionRequested = true;
                 status.setText(R.string.camille_update_permission);
-                startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
+                startActivityForResult(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())), 82);
                 return;
             }
             Uri uri = Uri.parse("content://" + getPackageName() + ".camille-updater/update.apk");

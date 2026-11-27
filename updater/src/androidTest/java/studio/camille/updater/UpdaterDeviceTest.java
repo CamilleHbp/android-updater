@@ -47,11 +47,22 @@ public class UpdaterDeviceTest {
         });
         instrumentation.waitForIdleSync();
     }
-    @Test public void englishOfferAndSnooze() throws Exception {
+    @Test public void englishOfferAndLaterDoesNotSnooze() throws Exception {
+        context.getSharedPreferences("camille-updater", 0).edit()
+            .putLong("snooze", Long.MAX_VALUE).putLong("nextCheckV2", Long.MAX_VALUE).commit();
         offer("en");
         onView(withText("Version 99.0 is available. Download and install it now?")).inRoot(isDialog()).check(matches(isDisplayed()));
         onView(withText("Later")).inRoot(isDialog()).perform(click());
-        assertTrue(context.getSharedPreferences("camille-updater", 0).getLong("snooze", 0) > System.currentTimeMillis());
+        assertEquals(0, context.getSharedPreferences("camille-updater", 0).getLong("snooze", 0));
+        assertEquals(0, context.getSharedPreferences("camille-updater", 0).getLong("nextCheckV2", 0));
+    }
+    @Test public void acceptingUpdateDoesNotSnoozeFutureLaunches() throws Exception {
+        offer("en");
+        onView(withText("Download update")).inRoot(isDialog()).perform(click());
+        Updater.IO.submit(() -> {}).get(); instrumentation.waitForIdleSync();
+        assertEquals(0, context.getSharedPreferences("camille-updater", 0).getLong("snooze", 0));
+        onView(withText("Try again")).check(matches(isDisplayed()));
+        androidx.test.espresso.Espresso.pressBack();
     }
     @Test public void frenchOffer() throws Exception {
         offer("fr");
@@ -77,10 +88,27 @@ public class UpdaterDeviceTest {
         Updater.IO.submit(() -> {}).get(); instrumentation.waitForIdleSync();
         onView(withText("Try again")).check(matches(isDisplayed()));
     }
-    @Test public void readyScreenRequiresExplicitInstallTap() throws Exception {
-        screen(true);
-        onView(withText("Install update")).check(matches(isDisplayed()));
-        onView(withText("Your update is ready. Android will ask you to confirm installation.")).check(matches(isDisplayed()));
+    @Test public void readyScreenOpensSystemPromptOnceWithoutAnotherTap() throws Exception {
+        String action = context.getPackageManager().canRequestPackageInstalls()
+            ? Intent.ACTION_INSTALL_PACKAGE : android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES;
+        IntentFilter filter = new IntentFilter(action);
+        filter.addDataScheme(context.getPackageManager().canRequestPackageInstalls() ? "content" : "package");
+        if (Intent.ACTION_INSTALL_PACKAGE.equals(action)) filter.addDataType("application/vnd.android.package-archive");
+        Instrumentation.ActivityMonitor monitor = instrumentation.addMonitor(
+            filter, new Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null), true);
+        try {
+            screen(true);
+            assertEquals("Verified download should launch Android immediately", 1, monitor.getHits());
+            instrumentation.runOnMainSync(() -> ((UpdateActivity) activity).render());
+            instrumentation.waitForIdleSync();
+            assertEquals("Cancellation must not reopen the prompt", 1, monitor.getHits());
+            android.os.Bundle saved = new android.os.Bundle();
+            instrumentation.runOnMainSync(() -> ((UpdateActivity) activity).onSaveInstanceState(saved));
+            assertTrue("Recreation must retain the consumed automatic attempt", saved.getBoolean("installationAttempted"));
+            onView(withText("Install update")).check(matches(isDisplayed()));
+            onView(withText("Install update")).perform(click());
+            assertEquals("An explicit retry should reopen Android", 2, monitor.getHits());
+        } finally { instrumentation.removeMonitor(monitor); }
     }
     @Test public void rejectsInstalledVersionAndWrongPackageBeforeInstallation() throws Exception {
         PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
