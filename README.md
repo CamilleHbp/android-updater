@@ -18,7 +18,7 @@ On Android 8 and newer the library verifies the file size, SHA-256, package name
 
 Use the AAR and checksum from the same version. Set `camille_update_app_id` to the app’s stable catalogue ID. The manifest starts foreground checks automatically. For a settings button, call `CamilleUpdater.checkNow(activity)`. The prompt and download screen follow the host activity’s English or French locale.
 
-[Gradle setup and build commands](docs/integration.md) · [Source for 1.0.5](https://github.com/CamilleHbp/android-updater/tree/v1.0.5) · [Source for 1.0.6](https://github.com/CamilleHbp/android-updater/tree/v1.0.6) · [App downloads](https://download.camille.studio)
+[Gradle setup and build commands](docs/integration.md) · [Source for 1.0.5](https://github.com/CamilleHbp/android-updater/tree/v1.0.5) · [Source for 1.0.6](https://github.com/CamilleHbp/android-updater/tree/v1.0.6)
 
 Tasks, Keyboard and Media use 1.0.5. Maps uses 1.0.6 to choose which activity hosts its update prompt.
 

@@ -27,7 +27,7 @@ Activity recreation preserves the active transfer. If Android kills the process,
 
 The updater reads the promoted Android release, independently of desktop releases, and preserves the installed debug/release channel and configured edition. All apps prefer ARM64 or x64 assets according to the device ABI order, with universal fallback. Keep original unqualified Android URLs universal for older updater versions. Numeric release IDs must be `<versionName>-<versionCode>`; the numeric suffix must equal the APK's Android version code. Same-name releases with a higher code are updates; downgrades and reinstalls are rejected.
 
-Downloads are restricted to immutable HTTPS URLs on `download.camille.studio`, without redirects. Before installation, the library verifies byte size, SHA-256, package ID, version name/code, minimum Android version, and the installed signing certificate. Signing-key rotation is rejected until the library explicitly supports a verified rotation lineage. Android also enforces its own package compatibility and signatures.
+Downloads are restricted to immutable HTTPS URLs on the catalogue host pinned in the library. Redirects are rejected. Before installation, the library verifies byte size, SHA-256, package ID, version name/code, minimum Android version, and the installed signing certificate. Signing-key rotation is rejected until the library explicitly supports a verified rotation lineage. Android also enforces its own package compatibility and signatures.
 
 English and French resources are included. The prompt follows the host activity's locale, and the download activity carries that locale through Android's installation-permission flow.
 
