@@ -2,6 +2,8 @@
 
 A shared Android library for apps distributed through https://download.camille.studio. Native update checks and verified installation require Android 8 or later. Version 1.0.5 can also be integrated into apps supporting Android 5–7: manual checks open the app’s public release page on those devices, and automatic checks remain disabled. Runtime code has no external dependencies.
 
+The [1.0.5 source](https://github.com/CamilleHbp/android-updater/tree/v1.0.5) builds the library in Tasks, Keyboard and Media. [Version 1.0.6](https://github.com/CamilleHbp/android-updater/tree/v1.0.6) also lets Maps choose its update-prompt activity.
+
 ## Integration
 
 Pin a verified `camille-updater-1.0.5.aar` build in the application's `libs` directory, alongside its SHA-256 file. Commit both files so builds need no GitHub credentials. The source and fixes live here; do not copy Java sources into consuming applications.

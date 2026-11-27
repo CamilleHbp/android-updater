@@ -1,5 +1,6 @@
 <resources>
     <string name="camille_update_app_id" translatable="false"></string>
+    <string name="camille_update_prompt_activity" translatable="false"></string>
     <string name="camille_update_edition" translatable="false"></string>
     <string name="camille_update_title">App update</string>
     <string name="camille_update_available">Version %1$s is available. Download and install it now?</string>

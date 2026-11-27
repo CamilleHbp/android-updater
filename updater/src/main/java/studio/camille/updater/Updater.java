@@ -35,8 +35,13 @@ final class Updater implements Application.ActivityLifecycleCallbacks {
     static long code(PackageInfo info) { return Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode; }
 
     @Override public void onActivityResumed(Activity activity) {
-        Intent launcher = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
-        if (launcher == null || !activity.getComponentName().equals(launcher.getComponent())) return;
+        String host = app.getString(R.string.camille_update_prompt_activity);
+        if (host.isEmpty()) {
+            Intent launcher = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
+            if (launcher == null || !activity.getComponentName().equals(launcher.getComponent())) return;
+        } else if (!host.equals(activity.getComponentName().getClassName())) {
+            return;
+        }
         foreground = new WeakReference<>(activity);
         // Fetch the current catalogue on every entry, including after Later or failure.
         if (checking || dialog != null) return;
